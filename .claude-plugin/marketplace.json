@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "taciogt-plugins",
+  "description": "Personal Claude Code plugin marketplace — opinionated workflow tools for feature development, CI repair, issue planning, and context engineering",
+  "owner": {
+    "name": "Tacio Tavares",
+    "email": "taciogt@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "dev-workflow",
+      "description": "Full development cycle toolkit: feature implementation with atomic commits, GitHub issue planning, and autonomous CI repair. Includes Opus-powered planning and parallel Sonnet code review agents.",
+      "category": "development",
+      "source": "./plugins/dev-workflow",
+      "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/dev-workflow"
+    },
+    {
+      "name": "claude-productivity",
+      "description": "Tools for working with Claude itself: skill execution review, complete skill authoring guide, context engineering best practices, and up-to-date documentation lookup via Context7.",
+      "category": "development",
+      "source": "./plugins/claude-productivity",
+      "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/claude-productivity"
+    }
+  ]
+}

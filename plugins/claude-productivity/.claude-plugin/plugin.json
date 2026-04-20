@@ -1,0 +1,8 @@
+{
+  "name": "claude-productivity",
+  "description": "Tools for working with Claude itself: skill execution review, complete skill authoring guide, context engineering best practices, and documentation lookup",
+  "author": {
+    "name": "Tacio Tavares",
+    "email": "taciogt@gmail.com"
+  }
+}
