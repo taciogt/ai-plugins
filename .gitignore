@@ -1,0 +1,17 @@
+# JetBrains IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+
+# OS X
+.DS_Store
+
+# Logs
+*.log
+
+# Claude specific (as seen in CLAUDE.md)
+.claude/settings.local.json
