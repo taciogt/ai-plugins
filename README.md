@@ -29,20 +29,49 @@ Tools for working with Claude itself.
 
 ## Installation
 
+### From GitHub
+
 Add the marketplace from within Claude Code:
 
 ```
 /plugin marketplace add taciogt/ai-plugins
 ```
 
-Then install the desired plugin:
+Then install the desired plugins:
 
 ```
 /plugin install dev-workflow@taciogt-plugins
 /plugin install claude-productivity@taciogt-plugins
 ```
 
-For local development setup, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+To get new plugin versions after the repo is updated:
+
+```
+/plugin marketplace update taciogt-plugins
+```
+
+### Local (for testing changes)
+
+If you're iterating on the plugins locally, add the marketplace by its local path so changes are visible without reinstalling:
+
+```
+/plugin marketplace add /path/to/ai-plugins
+```
+
+Then install plugins the same way:
+
+```
+/plugin install dev-workflow@taciogt-plugins
+/plugin install claude-productivity@taciogt-plugins
+```
+
+After editing a skill or agent, reload the marketplace to pick up changes:
+
+```
+/plugin marketplace update taciogt-plugins
+```
+
+For contributing guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Version
 
