@@ -10,9 +10,9 @@ Full development cycle toolkit.
 
 | Skill | Invocation | What it does |
 |-------|-----------|-------------|
-| `implement` | `/implement [issue or description]` | 5-phase feature development: planning → atomic commits → validation → parallel code review → PR |
-| `plan-issue` | `/plan-issue [description]` | Plans a task via Opus agent and creates a GitHub issue with acceptance criteria |
-| `fix-ci` | `/fix-ci [PR number]` | Autonomously fixes failing CI: polls checks, reads logs, commits fixes, up to 3 cycles |
+| [`implement`](./plugins/dev-workflow/README.md#implement-issue-number-or-description) | `/implement [issue or description]` | 5-phase feature development: planning → atomic commits → validation → parallel code review → PR |
+| [`plan-issue`](./plugins/dev-workflow/README.md#plan-issue-description) | `/plan-issue [description]` | Plans a task via Opus agent and creates a GitHub issue with acceptance criteria |
+| [`fix-ci`](./plugins/dev-workflow/README.md#fix-ci-pr-number) | `/fix-ci [PR number]` | Autonomously fixes failing CI: polls checks, reads logs, commits fixes, up to 3 cycles |
 
 Bundled agents: `task-planner` (Opus, planning), `task-reviewer` (Sonnet, 3-dimension code review).
 
@@ -22,50 +22,27 @@ Tools for working with Claude itself.
 
 | Skill | Invocation | What it does |
 |-------|-----------|-------------|
-| `skill-review` | `/skill-review [skill-name]` | Audits how well a named skill was executed — phase adherence, gate compliance, outcome |
-| `skill-authoring-guide` | auto-loaded | Reference for creating skills, subagents, and hooks (not user-invocable) |
-| `context-engineering` | `/context-engineering` | Best practices for curating agent context — rules files, context hierarchy, anti-patterns |
-| `find-docs` | `/find-docs` | Fetches current library/framework docs via Context7 CLI |
+| [`skill-review`](./plugins/claude-productivity/README.md#skill-review-skill-name) | `/skill-review [skill-name]` | Audits how well a named skill was executed — phase adherence, gate compliance, outcome |
+| [`skill-authoring-guide`](./plugins/claude-productivity/README.md#skill-authoring-guide-auto-loaded) | auto-loaded | Reference for creating skills, subagents, and hooks (not user-invocable) |
+| [`context-engineering`](./plugins/claude-productivity/README.md#context-engineering) | `/context-engineering` | Best practices for curating agent context — rules files, context hierarchy, anti-patterns |
+| [`find-docs`](./plugins/claude-productivity/README.md#find-docs-library-or-question) | `/find-docs` | Fetches current library/framework docs via Context7 CLI |
 
 ## Installation
 
-### Local symlink (for personal use — changes take effect immediately)
+Add the marketplace from within Claude Code:
 
-```bash
-mkdir -p ~/.claude/plugins/marketplaces
-ln -s /path/to/ai-plugins ~/.claude/plugins/marketplaces/taciogt-plugins
+```
+/plugin marketplace add taciogt/ai-plugins
 ```
 
-Then add an entry to `~/.claude/plugins/known_marketplaces.json`:
+Then install the desired plugin:
 
-```json
-{
-  "taciogt-plugins": {
-    "source": { "source": "local" },
-    "installLocation": "/Users/<you>/.claude/plugins/marketplaces/taciogt-plugins",
-    "lastUpdated": "2026-04-20T00:00:00.000Z"
-  }
-}
+```
+/plugin install dev-workflow@taciogt-plugins
+/plugin install claude-productivity@taciogt-plugins
 ```
 
-### Install from GitHub
-
-```bash
-git clone https://github.com/taciogt/ai-plugins.git \
-  ~/.claude/plugins/marketplaces/taciogt-plugins
-```
-
-Register in `known_marketplaces.json`:
-
-```json
-{
-  "taciogt-plugins": {
-    "source": { "source": "github", "repo": "taciogt/ai-plugins" },
-    "installLocation": "/Users/<you>/.claude/plugins/marketplaces/taciogt-plugins",
-    "lastUpdated": "2026-04-20T00:00:00.000Z"
-  }
-}
-```
+For local development setup, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Version
 
