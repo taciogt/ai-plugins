@@ -30,13 +30,13 @@ If the command fails (no GitHub remote configured), inform the user and stop.
 
 ## Phase 0.5 — Task Refinement
 
-Before launching `task-planner`, invoke the `task-refinement` skill with `$ARGUMENTS`.
+Before launching `task-planner`, invoke the `dev-workflow:task-refinement` skill with `$ARGUMENTS`.
 
 - If it returns "Task is sufficiently specified", proceed immediately to Phase 1.
 - If it runs an interview, use the refined spec it outputs as the effective task description for Phase 1 (pass the refined spec to `task-planner` instead of the original `$ARGUMENTS`).
 
 **Signal 5 check — after task-planner returns:**
-Review the plan for Signal 5: does it introduce a technology, library, or architectural pattern not currently in the codebase? If yes, invoke `task-refinement` with `$ARGUMENTS signal5:<finding>` before presenting the plan to the user.
+Review the plan for Signal 5: does it introduce a technology, library, or architectural pattern not currently in the codebase? If yes, invoke `dev-workflow:task-refinement` with `$ARGUMENTS signal5:<finding>` before presenting the plan to the user.
 
 ---
 

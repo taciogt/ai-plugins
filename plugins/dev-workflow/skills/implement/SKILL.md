@@ -67,13 +67,13 @@ You will drive the full implementation of a task in a closed loop: planning → 
 
 ## Phase 0.5 — Task Refinement
 
-Before exploring the codebase, invoke the `task-refinement` skill with `$ARGUMENTS`.
+Before exploring the codebase, invoke the `dev-workflow:task-refinement` skill with `$ARGUMENTS`.
 
 - If it returns "Task is sufficiently specified", proceed immediately to Phase 1.
 - If it runs an interview, use the refined spec it outputs as the effective task description for all subsequent phases (replace `$ARGUMENTS` references with the refined spec).
 
 **Signal 5 check — after Phase 1 Explore:**
-After the Explore agent returns its findings, review them for Signal 5: does this task require a technology, library, or architectural pattern not already established in the codebase? If yes, invoke `task-refinement` again with `$ARGUMENTS signal5:<what Explore found>`. Incorporate the user's answer before proceeding to plan presentation.
+After the Explore agent returns its findings, review them for Signal 5: does this task require a technology, library, or architectural pattern not already established in the codebase? If yes, invoke `dev-workflow:task-refinement` again with `$ARGUMENTS signal5:<what Explore found>`. Incorporate the user's answer before proceeding to plan presentation.
 
 ---
 
