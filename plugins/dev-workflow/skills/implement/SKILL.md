@@ -251,6 +251,7 @@ Run `git diff origin/main..HEAD --name-only` and reason about the changed files 
 **Step 3 — Navigate and check:**
 - Infer the relevant route from the changed files (e.g. `src/components/LoginForm.tsx` → `/login`, `src/pages/dashboard/` → `/dashboard`, `app/routes/settings.tsx` → `/settings`). Default to `/` if no specific route is inferable.
 - Use Claude-in-Chrome tools: navigate to `http://localhost:<port>/<route>`, take a screenshot.
+- **If a browser tool returns a `permission_required` error for `localhost`:** Do NOT skip the check. Instead, tell the user: "Browser check requires localhost permission. To grant it, open Claude Code settings → Permissions and add `localhost` to the allowed origins, or run `/allowed-domains add localhost`. Once granted, I will proceed with the check." Then wait for confirmation before retrying. Never silently skip the browser check when it is applicable.
 - Check for: page renders without a blank screen, no unhandled console errors, expected UI elements are visible.
 
 **Step 4 — Teardown:**
