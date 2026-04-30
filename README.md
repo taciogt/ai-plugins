@@ -26,7 +26,7 @@ Tools for working with Claude itself.
 | [`skill-authoring-guide`](./plugins/claude-productivity/README.md#skill-authoring-guide-auto-loaded) | auto-loaded | Reference for creating skills, subagents, and hooks (not user-invocable) |
 | [`context-engineering`](./plugins/claude-productivity/README.md#context-engineering) | `/context-engineering` | Best practices for curating agent context — rules files, context hierarchy, anti-patterns |
 | [`find-docs`](./plugins/claude-productivity/README.md#find-docs-library-or-question) | `/find-docs` | Fetches current library/framework docs via Context7 CLI |
-| [`review-session`](./plugins/claude-productivity/README.md#review-session) | `/review-session` | Analyses the current session for improvement opportunities across 7 dimensions — missed skills, delegation decisions, rework, planning gaps, context bloat, parallelisation |
+| [`review-session`](./plugins/claude-productivity/README.md#review-session) | `/review-session` | Analyses the current session for improvement opportunities across 7 dimensions — missed skills, delegation decisions, rework, planning gaps, context bloat, parallelisation, and other observations |
 
 ## Installation
 

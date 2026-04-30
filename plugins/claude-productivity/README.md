@@ -27,4 +27,4 @@ Fetches current documentation for any library, framework, SDK, or CLI tool via t
 
 ### `/review-session`
 
-Analyses the current session and produces a structured, read-only report across seven dimensions: missed skill invocations, subagent model fit and delegation decisions, rework loops, planning gate violations, context bloat, missed parallelisation, and other observations. Each finding carries a `[High]`, `[Medium]`, or `[Low]` severity badge. Report closes with a count-by-severity rollup and an overall verdict. Invoke after any non-trivial session to identify what to do better next time.
+Analyses the current session and produces a severity-rated report across 7 dimensions. Invoke after any non-trivial session to identify what to do better next time.

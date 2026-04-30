@@ -1,7 +1,7 @@
 ---
 name: review-session
 description: Analyses the current session and produces a structured report of improvement opportunities — skills that should have been used, subagent delegation decisions, rework patterns, planning failures, context bloat, and missed parallelisation. Use after any non-trivial session to identify what could be done better next time.
-argument-hint: ""
+when_to_use: After any non-trivial session to identify improvement opportunities for future sessions.
 user-invocable: true
 allowed-tools:
   - Read
@@ -12,7 +12,7 @@ allowed-tools:
 
 Analyse the current Claude Code session and produce a structured, read-only report of improvement opportunities. Cover all seven dimensions below. Each finding carries a severity badge: `[High]`, `[Medium]`, or `[Low]`, reflecting the impact the issue had (or would have had) on session quality.
 
-**This skill is strictly read-only.** Do not edit files, create issues, or call external services.
+**This skill is strictly read-only.** Only `Read` and `Glob` are permitted. If you find yourself about to call any other tool, stop immediately and do not proceed.
 
 ---
 
@@ -95,7 +95,7 @@ Produce the report in this exact structure:
 - [Medium] ...
 
 ### 5. Context Bloat
-- [Low] No signals detected.
+- [Low] No findings.
 
 ### 6. Missed Parallelisation
 - [Medium] ...
@@ -116,4 +116,4 @@ Produce the report in this exact structure:
 **Overall verdict:** one sentence on the session's main quality failure and its root cause.
 ```
 
-If a dimension has no findings, output: `- No issues detected.`
+If a dimension has no findings, output: `- No findings.`
