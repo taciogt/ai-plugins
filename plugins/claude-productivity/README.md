@@ -24,3 +24,7 @@ Best practices for curating agent context: the context hierarchy (rules → spec
 ### `/find-docs [library or question]`
 
 Fetches current documentation for any library, framework, SDK, or CLI tool via the Context7 CLI. Two-step workflow: resolve library ID, then query docs. Use for API syntax, configuration options, version migration, and library-specific debugging.
+
+### `/review-session`
+
+Analyses the current session and produces a severity-rated report across 7 dimensions. Invoke after any non-trivial session to identify what to do better next time.
