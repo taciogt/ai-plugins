@@ -10,7 +10,10 @@ Full development cycle toolkit.
 
 | Skill | Invocation | What it does |
 |-------|-----------|-------------|
-| [`implement`](./plugins/dev-workflow/README.md#implement-issue-number-or-description) | `/implement [issue or description]` | 5-phase feature development: planning → atomic commits → validation → parallel code review → PR |
+| [`implement`](./plugins/dev-workflow/README.md#implement-issue-number-or-description) | `/implement [issue or description]` | Full-cycle feature development: planning → atomic commits → validate → review → ship |
+| [`validate`](./plugins/dev-workflow/README.md#validate) | `/validate` | Lint, typecheck, targeted tests, and browser check on the current branch |
+| [`review`](./plugins/dev-workflow/README.md#review) | `/review [focus]` | 3-angle parallel code review: bugs/security, simplicity, conventions |
+| [`ship`](./plugins/dev-workflow/README.md#ship) | `/ship` | Push branch, open PR, wait for CI, clean up worktrees |
 | [`plan-issue`](./plugins/dev-workflow/README.md#plan-issue-description) | `/plan-issue [description]` | Plans a task via Opus agent and creates a GitHub issue with acceptance criteria |
 | [`fix-ci`](./plugins/dev-workflow/README.md#fix-ci-pr-number) | `/fix-ci [PR number]` | Autonomously fixes failing CI: polls checks, reads logs, commits fixes, up to 3 cycles |
 

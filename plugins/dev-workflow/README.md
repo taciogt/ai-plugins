@@ -6,14 +6,26 @@ Full development cycle toolkit for any software project.
 
 ### `/implement [issue-number or description]`
 
-5-phase end-to-end feature development:
+Full-cycle feature development across 5 phases, delegating validation, review, and delivery to standalone sub-skills:
 
 0. **Execution mode** — isolated worktree or current working tree
 1. **Planning** — Explore agent maps codebase; Opus agent produces atomic steps; user approves
-2. **Implementation** — parallel batches or sequential steps, one commit per step; auto-detects project's validate/test commands from CLAUDE.md
-3. **Final validation** — runs the project's validate command end-to-end
-4. **Code review** — 3 parallel Sonnet reviewers (bugs, simplicity, conventions); user decides what to fix
-5. **Push & PR** — opens PR, watches CI
+2. **Implementation** — parallel batches or sequential steps, one commit per step; auto-detects project's validate/test/lint commands from CLAUDE.md
+3. **Final validation** — delegates to `/validate`
+4. **Code review** — delegates to `/review`
+5. **Push & PR** — delegates to `/ship`
+
+### `/validate`
+
+Validates the current branch end-to-end: lint, typecheck, targeted tests, and browser check. Self-sufficient standalone — detects project commands from CLAUDE.md automatically. When invoked from `/implement`, reuses the command variables already in session.
+
+### `/review [focus]`
+
+Runs 3 parallel Sonnet reviewers across the current branch (bugs/security, simplicity/DRY, project conventions) and consolidates findings. Standalone-safe — infers task context from `git log` if no focus is provided.
+
+### `/ship`
+
+Pushes the current branch, opens a PR against main, waits for CI checks, and handles worktree cleanup. Standalone-safe — works on any branch regardless of how it was built.
 
 ### `/plan-issue [description]`
 
