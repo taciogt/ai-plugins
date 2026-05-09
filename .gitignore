@@ -15,3 +15,4 @@
 
 # Claude specific (as seen in CLAUDE.md)
 .claude/settings.local.json
+.claude/worktrees
