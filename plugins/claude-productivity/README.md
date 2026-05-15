@@ -17,10 +17,6 @@ Includes supporting reference files:
 - `reference-subagents.md` — full subagents documentation with permission modes
 - `reference-hooks.md` — full hooks documentation with all events and handler types
 
-### `/context-engineering`
-
-Best practices for curating agent context: the context hierarchy (rules → specs → source → errors → history), context packing strategies, confusion management patterns, and anti-patterns to avoid.
-
 ### `/find-docs [library or question]`
 
 Fetches current documentation for any library, framework, SDK, or CLI tool via the Context7 CLI. Two-step workflow: resolve library ID, then query docs. Use for API syntax, configuration options, version migration, and library-specific debugging.

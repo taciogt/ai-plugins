@@ -16,7 +16,7 @@
     },
     {
       "name": "claude-productivity",
-      "description": "Tools for working with Claude itself: skill execution review, complete skill authoring guide, context engineering best practices, and up-to-date documentation lookup via Context7.",
+      "description": "Tools for working with Claude itself: skill execution review, complete skill authoring guide, and up-to-date documentation lookup via Context7.",
       "category": "development",
       "source": "./plugins/claude-productivity",
       "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/claude-productivity"
