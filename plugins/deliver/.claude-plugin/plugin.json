@@ -1,5 +1,5 @@
 {
-  "name": "dev-workflow",
+  "name": "deliver",
   "description": "Full development cycle toolkit: feature implementation with atomic commits, GitHub issue planning, and autonomous CI repair",
   "author": {
     "name": "Tacio Tavares",

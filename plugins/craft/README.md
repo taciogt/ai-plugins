@@ -1,4 +1,4 @@
-# claude-productivity
+# craft
 
 Tools for building and improving Claude Code workflows.
 

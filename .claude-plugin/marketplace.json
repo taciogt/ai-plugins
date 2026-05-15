@@ -8,18 +8,18 @@
   },
   "plugins": [
     {
-      "name": "dev-workflow",
+      "name": "deliver",
       "description": "Full development cycle toolkit: feature implementation with atomic commits, GitHub issue planning, and autonomous CI repair. Includes Opus-powered planning and parallel Sonnet code review agents.",
       "category": "development",
-      "source": "./plugins/dev-workflow",
-      "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/dev-workflow"
+      "source": "./plugins/deliver",
+      "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/deliver"
     },
     {
-      "name": "claude-productivity",
+      "name": "craft",
       "description": "Tools for working with Claude itself: skill execution review, complete skill authoring guide, and up-to-date documentation lookup via Context7.",
       "category": "development",
-      "source": "./plugins/claude-productivity",
-      "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/claude-productivity"
+      "source": "./plugins/craft",
+      "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/craft"
     }
   ]
 }
