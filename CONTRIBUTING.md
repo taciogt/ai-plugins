@@ -52,4 +52,4 @@ Key frontmatter fields:
 | `allowed-tools` | Pre-approve tools to avoid per-use prompts |
 | `argument-hint` | Autocomplete hint shown in the `/` menu |
 
-For the full field reference, run `/skill-authoring-guide` inside any Claude Code session that has the `claude-productivity` plugin installed.
+For the full field reference, run `/skill-authoring-guide` inside any Claude Code session that has the `craft` plugin installed.

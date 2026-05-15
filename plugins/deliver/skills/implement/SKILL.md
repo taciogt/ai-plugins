@@ -55,7 +55,7 @@ You will drive the full implementation of a task in a closed loop: planning → 
 3. Call `EnterWorktree({ name: slug })`.
    - This creates `.claude/worktrees/<slug>/` with branch `worktree-<slug>` based on `origin/HEAD`.
 4. Confirm: "✓ Worktree `<slug>` created. All implementation will happen in the isolated context."
-5. Note internally that a worktree was created — `dev-workflow:ship` will handle `ExitWorktree` at the end of Phase 5, after all user follow-up is resolved.
+5. Note internally that a worktree was created — `deliver:ship` will handle `ExitWorktree` at the end of Phase 5, after all user follow-up is resolved.
 
 **Branch naming in worktree mode:** The worktree branch (`worktree-<slug>`) **is** the feature branch for the PR. Do not create a separate feature branch — skip the `git checkout -b` step in Phase 2.
 
@@ -66,13 +66,13 @@ You will drive the full implementation of a task in a closed loop: planning → 
 
 ## Phase 0.5 — Task Refinement
 
-Before exploring the codebase, invoke the `dev-workflow:task-refinement` skill with `$ARGUMENTS`.
+Before exploring the codebase, invoke the `deliver:task-refinement` skill with `$ARGUMENTS`.
 
 - If it returns "Task is sufficiently specified", proceed immediately to Phase 1.
 - If it runs an interview, use the refined spec it outputs as the effective task description for all subsequent phases (replace `$ARGUMENTS` references with the refined spec).
 
 **Signal 5 check — after Phase 1 Explore:**
-After the Explore agent returns its findings, review them for Signal 5: does this task require a technology, library, or architectural pattern not already established in the codebase? If yes, invoke `dev-workflow:task-refinement` again with `$ARGUMENTS signal5:<what Explore found>`. Incorporate the user's answer before proceeding to plan presentation.
+After the Explore agent returns its findings, review them for Signal 5: does this task require a technology, library, or architectural pattern not already established in the codebase? If yes, invoke `deliver:task-refinement` again with `$ARGUMENTS signal5:<what Explore found>`. Incorporate the user's answer before proceeding to plan presentation.
 
 ---
 
@@ -191,19 +191,19 @@ For each step:
 
 ## Phase 3 — Final Validation
 
-Invoke `dev-workflow:validate`. The command variables (`$VALIDATE_CMD`, `$LINT_CMD`, `$TYPECHECK_CMD`, `$TEST_CMD`, `$DEV_CMD`) and task context from this session are already available — validate will use them without re-detection.
+Invoke `deliver:validate`. The command variables (`$VALIDATE_CMD`, `$LINT_CMD`, `$TYPECHECK_CMD`, `$TEST_CMD`, `$DEV_CMD`) and task context from this session are already available — validate will use them without re-detection.
 
 ---
 
 ## Phase 4 — Code Review
 
-Invoke `dev-workflow:review` with `$ARGUMENTS`. The original task description is passed as the reviewer focus.
+Invoke `deliver:review` with `$ARGUMENTS`. The original task description is passed as the reviewer focus.
 
 ---
 
 ## Phase 5 — Push, PR, and Close
 
-Invoke `dev-workflow:ship`. If a worktree was created in Phase 0, ship will detect it and call `ExitWorktree` after all user follow-up is resolved.
+Invoke `deliver:ship`. If a worktree was created in Phase 0, ship will detect it and call `ExitWorktree` after all user follow-up is resolved.
 
 ---
 

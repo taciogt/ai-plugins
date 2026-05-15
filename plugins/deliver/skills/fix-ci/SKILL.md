@@ -92,7 +92,7 @@ Based on the collected logs:
 4. Common failure types and approach:
    - **Failing test**: fix the code or the test (only what is necessary)
    - **TypeScript type error**: fix the typing in the file pointed to
-   - **Lint/format**: check CLAUDE.md for lint/format commands (same detection as `dev-workflow:validate`); if not found, use `npx eslint --fix` for JS/TS or `npx prettier --write` as fallback
+   - **Lint/format**: check CLAUDE.md for lint/format commands (same detection as `deliver:validate`); if not found, use `npx eslint --fix` for JS/TS or `npx prettier --write` as fallback
    - **Build error**: fix the broken import/export
    - **Migration failure**: analyze the schema and fix the migration
 
@@ -100,7 +100,7 @@ Based on the collected logs:
 
 Run the tests locally in the scope of the fix:
 
-Use the same command detection as `dev-workflow:validate`: check CLAUDE.md for the project's test/lint/typecheck commands first; if absent, fall back to `npm test <file>` / `npx jest <file>` / `make test` for tests, and `npx tsc --noEmit` / `npx eslint .` for type/lint failures.
+Use the same command detection as `deliver:validate`: check CLAUDE.md for the project's test/lint/typecheck commands first; if absent, fall back to `npm test <file>` / `npx jest <file>` / `make test` for tests, and `npx tsc --noEmit` / `npx eslint .` for type/lint failures.
 
 - If tests **pass locally**: proceed to Step 6.
 - If tests **fail locally**: attempt one additional fix. If still failing, stop with failure.

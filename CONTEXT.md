@@ -7,7 +7,7 @@ This file is the canonical glossary for the plugin marketplace project. Terms he
 ## Glossary
 
 ### Plugin Version
-Plugins are versioned independently. A breaking change to `dev-workflow` advances its version without affecting `claude-productivity`. The Marketplace itself is not versioned as a unit — the Marketplace is just the container; version state lives at the Plugin level.
+Plugins are versioned independently. A breaking change to `deliver` advances its version without affecting `craft`. The Marketplace itself is not versioned as a unit — the Marketplace is just the container; version state lives at the Plugin level.
 
 ### Plugin Self-containment
 A Plugin must not depend on Skills or Sub-agents from another Plugin. All Skills and Sub-agents a Plugin needs must be defined within it. If logic is shared across Plugins, it is either duplicated or extracted into a Skill within one Plugin. This keeps installation atomic and prevents version mismatch across Plugins.
