@@ -76,6 +76,35 @@ After editing a skill or agent, reload the marketplace to pick up changes:
 
 For contributing guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
+## Personal Setup Notes
+
+### Statusline
+
+The following `/statusline` prompt configures a two-line status bar:
+
+- **Line 1** — session location: path, git branch, worktree name (when active), model, effort level (when non-default), 💡 (when reasoning enabled)
+- **Line 2** — performance: color-coded context bar + %, cost (adaptive precision), session time with API portion, rate limits (when available)
+
+```
+/statusline Create a two-line status line:
+
+Line 1 — session location and context:
+- Full working directory path shortened with ~ for home, in bold blue
+- Git branch in parentheses, in magenta — only when inside a git repo
+- Worktree name prefixed with ⑂ — only show when workspace.git_worktree or worktree.name is present
+- Model display name, in cyan
+- Effort level (e.g. "effort:high") — only show when effort.level is present and not "medium"
+- 💡 emoji — only show when thinking.enabled is true
+- Segments separated by |
+
+Line 2 — performance metrics:
+- 10-block color-coded progress bar (▓ filled, ░ empty) + context percentage + token count in k (e.g. "64k tokens"). Green when under 70%, yellow 70–89%, red at 90%+
+- Session cost in USD: 4 decimal places when under $0.01 (e.g. $0.0034), 2 decimal places otherwise (e.g. $1.23)
+- Session time: total wall-clock in human-readable format (45s, 12m, 1h32m) with API processing time in parentheses — derived from cost.total_duration_ms and cost.total_api_duration_ms (e.g. "⏱ 12m (3m api)")
+- Rate limit usage (e.g. "5h: 23% | 7d: 41%") — only show when rate_limits data is present. Green under 50%, yellow 50–79%, red at 80%+
+- Segments separated by |
+```
+
 ## Version
 
 `v0.1.0` — initial release
