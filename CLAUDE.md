@@ -20,6 +20,10 @@ plugins/
 
 When installed, skills land in `.claude/skills/` and agents in `.claude/agents/` inside the target project.
 
+## Issue Tracker
+
+Issues, PRDs, and wayfinder maps live in **Linear**, in the `Home Finances` team, via the `linear-server` MCP. See `docs/agents/issue-tracker.md` for the conventions — including the Linear-specific wayfinder operations and two footguns (`labels` replaces the whole set; there is no "open" state).
+
 ## Adding a New Plugin
 
 1. Create `plugins/<plugin-name>/` with a `.claude-plugin/plugin.json` and `README.md`.
