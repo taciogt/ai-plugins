@@ -1,112 +1,63 @@
-# Issue tracker: Linear
+# Issue tracker: GitHub
 
-Issues, PRDs, and wayfinder maps for this repo live in **Linear**, in the **Home Finances** team
-(the only team in this workspace — the name is historical, not a scope constraint). Use the
-`linear-server` MCP tools for all operations.
+Issues, specs, and wayfinder maps for this repo live as **GitHub issues**, in `taciogt/ai-plugins`. Use the `gh` CLI for all operations. `gh` infers the repo from the working directory's git remote.
 
-The MCP server is registered at **local scope** for this project. If the `mcp__linear-server__*`
-tools are not present in a session, they were not loaded at session start — start a fresh session,
-or run `ToolSearch "+linear"` to load their schemas.
+This repo migrated off Linear on 2026-09-07 as a deliberate trial — see `docs/adr/0004-github-issues-for-ai-plugins.md` for the reasoning. Other personal projects (a separate Linear workspace, unrelated to this repo) are unaffected.
+
+Requires `gh` **2.94.0+** (native sub-issues and issue dependencies) and the `project` OAuth scope for the board (`gh auth refresh -s project` if `gh project` commands fail with a scope error).
 
 ## Conventions
 
-- **Create an issue**: `save_issue` with `title` and `team: "Home Finances"` (both required on create).
-  Omit `id` — passing it switches the call to update mode.
-- **Update an issue**: `save_issue` with `id` (e.g. `HF-81`).
-- **Read an issue**: `get_issue` with `id`. Pass `includeRelations: true` to see blocking edges —
-  they are **not** returned by default, and `save_issue` does not echo them back either.
-- **List issues**: `list_issues`, filtered by `project`, `parentId`, `state`, `assignee`, or `label`.
-- **Comment**: `save_comment` with `issueId` and `body`.
-- **Labels**: `list_issue_labels` / `create_issue_label`.
+- **Create an issue**: `gh issue create --title "..." -F body.md --label "..."`. Always use `-F/--body-file` with a scratch file for anything beyond a one-liner — bodies routinely contain backticks, `$`, and nested Markdown that break `-b/--body` quoting.
+- **Read an issue**: `gh issue view <number> --comments`.
+- **List issues**: `gh issue list --state open --json number,title,body,labels,comments` with `--label`/`--search` filters as needed.
+- **Comment on an issue**: `gh issue comment <number> --body "..."`.
+- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`.
+- **Close**: `gh issue close <number> --reason completed --comment "..."` (or `--reason "not planned"` for won't-fix).
 
-### Workflow states
+## Pull requests as a triage surface
 
-This team's states are `Backlog`, `Todo`, `In Progress`, `In Review`, `Done`, `Canceled`, `Duplicate`.
-
-Linear has no "open" state — it groups states by *type* (`backlog`, `unstarted`, `started`,
-`completed`, `canceled`). Wherever a skill says **open**, read it as "not `Done` and not `Canceled`".
-Since `state` accepts one value, express "open" by listing the states you want rather than trying to
-negate. Wayfinder tickets are created in **`Todo`** and closed to **`Done`**.
-
-### Two footguns
-
-1. **`save_issue(labels:)` replaces the entire label set.** Any label not included is removed.
-   When claiming a ticket or wiring blockers, **omit `labels` entirely** — otherwise you will strip
-   the `wayfinder:<type>` label off the ticket.
-2. **`blockedBy` / `blocks` are append-only.** They never remove existing relations. Use
-   `removeBlockedBy` / `removeBlocks` for that.
+**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
 
 ## When a skill says "publish to the issue tracker"
 
-Create a Linear issue in the **Home Finances** team.
+Create a GitHub issue in `taciogt/ai-plugins`.
 
 ## When a skill says "fetch the relevant ticket"
 
-`get_issue` with the identifier, plus `list_comments` for the discussion.
+`gh issue view <number> --comments`.
 
 ## Wayfinding operations
 
-Used by `/wayfinder`. Linear has both projects and parent/child issues, so an effort uses **both**:
-a **Project** is the container and gives the effort its own board and URL; the **map** is a single
-issue inside it, and tickets are that map issue's children.
+Used by `/wayfinder`. GitHub's native **sub-issues** and **issue dependencies** (both surfaced through `gh` since 2.94.0, June 2026) cover this cleanly — no raw `gh api` calls needed.
 
-The map body must live on the **map issue**, not the project description — wayfinder appends to
-Decisions-so-far, and the `wayfinder:map` label plus `parentId` are what make the frontier query
-work at all.
+- **Project board**: a GitHub Project (v2), one per wayfinder effort, e.g. [Skill Evals for ai-plugins](https://github.com/users/taciogt/projects/6). Its default **Status** field (`Todo` / `In Progress` / `Done`) is the kanban replacement for Linear's workflow states — this repo's tickets only ever use those three, so no custom field is needed. Create with `gh project create --owner taciogt --title "<effort>"`; add issues with `gh project item-add <project-number> --owner taciogt --url <issue-url>`; set status with `gh project item-edit --project-id <id> --id <item-id> --field-id <status-field-id> --single-select-option-id <option-id>` (ids come from `gh project field-list <number> --owner taciogt --format json`).
 
-- **Project**: `save_project` with `name` and `addTeams: ["Home Finances"]`. Its description should
-  point at the map issue and nothing else.
+- **Map**: an issue labelled `wayfinder:map`, holding the Destination / Notes / Decisions-so-far / Not-yet-specified / Out-of-scope body (same shape as the old Linear convention). `gh issue create --label wayfinder:map -F map-body.md`.
 
-- **Map**: an issue in that project labelled `wayfinder:map`, holding the Destination / Notes /
-  Decisions-so-far / Not-yet-specified / Out-of-scope body. Set it to `In Progress` for the life of
-  the effort.
+- **Child ticket**: `gh issue create --parent <map#> -F body.md --label "wayfinder:<type>"` (`research`/`prototype`/`grilling`/`task`), plus this workspace's `AFK`/`HITL` labels — `research` is AFK, the rest are HITL unless the ticket says otherwise. `--parent` sets the sub-issue relationship at creation time; use `gh issue edit <map#> --add-sub-issue <child#>` to attach one after the fact.
+
+- **Blocking**: wire dependencies in a **second pass**, once every child has a number (mirrors the old Linear convention — the ids don't exist until the issues do):
 
   ```
-  save_issue(team: "Home Finances", project: "<project>", title: "Map — <effort>",
-             labels: ["wayfinder:map"], state: "In Progress", description: "<map body>")
+  gh issue edit <child#> --add-blocked-by <blocker#>,<blocker#>
   ```
 
-- **Child ticket**: an issue with `parentId: "<map id>"`, in the same project, in `Todo`.
-  Labels: `wayfinder:<type>` (`research` / `prototype` / `grilling` / `task`), plus this workspace's
-  existing `AFK` / `HITL` labels — `research` is AFK, the rest are HITL unless the ticket says
-  otherwise.
+  Setting `--add-blocked-by` on one issue automatically creates the inverse `blocking` edge on the referenced issue — only wire one direction. A ticket is **unblocked** when every issue in its `blockedBy` is closed.
 
-  ```
-  save_issue(team: "Home Finances", project: "<project>", parentId: "<map id>",
-             labels: ["wayfinder:grilling", "HITL"], state: "Todo", ...)
-  ```
+- **Frontier query**: the map's open, unassigned, unblocked children. There is no single search qualifier for "sub-issue of #N" (GitHub's issue search doesn't expose parent/child yet), so this is a two-step read, not a one-liner:
 
-- **Blocking**: Linear's **native** blocking relation, which renders in Linear's own UI so the
-  frontier is visible without opening the map. Wire it in a **second pass**, after the issues have
-  ids:
+  1. `gh issue view <map#> --json subIssues -q '.subIssues.nodes[] | select(.state=="OPEN") | .number'` — the open children.
+  2. For each, `gh issue view <n> --json number,title,assignees,blockedBy` — keep it only if `assignees` is empty and every entry in `blockedBy.nodes` has `state != "OPEN"`.
 
-  ```
-  save_issue(id: "HF-81", blockedBy: ["HF-77", "HF-79"])   # no `labels` — it would strip them
-  ```
+  First in map order wins. (Do **not** use the Project Status field for "unclaimed" — assignee is the claim, same as Linear, and that keeps the query board-independent.)
 
-  A ticket is **unblocked** when every issue in its `blockedBy` is `Done` or `Canceled`.
+- **Claim**: `gh issue edit <n> --add-assignee @me` — the session's first write, before any work.
 
-- **Frontier query**: the map's children that are open, unblocked, and unclaimed.
+- **Resolve**: `gh issue comment <n> --body "<the answer>"`, then `gh issue close <n> --reason completed`, then append a one-line context pointer (gist + link, referring to the ticket **by title**) to the map issue's Decisions-so-far section (`gh issue edit <map#> -F updated-map-body.md`).
 
-  ```
-  list_issues(parentId: "<map id>", state: "Todo", assignee: null)
-  ```
-
-  then, for each result, `get_issue(id, includeRelations: true)` and drop any whose `blockedBy`
-  contains an issue that is not yet `Done`/`Canceled`. First in map order wins.
-
-- **Claim**: `save_issue(id: "<ticket>", assignee: "me", state: "In Progress")` — the session's
-  first write, before any work. Omit `labels`. The assignee *is* the claim.
-
-- **Resolve**: `save_comment(issueId: "<ticket>", body: "<the answer>")`, then
-  `save_issue(id: "<ticket>", state: "Done")`, then append a one-line context pointer
-  (gist + link, referring to the ticket **by title**) to the map issue's Decisions-so-far section.
-
-- **Rule out of scope**: `save_issue(id, state: "Canceled")` and add one line to the map's
-  **Out of scope** section. It does **not** go in Decisions-so-far.
+- **Rule out of scope**: `gh issue close <n> --reason "not planned" --comment "..."` and add one line to the map's **Out of scope** section. It does **not** go in Decisions-so-far.
 
 ## Active maps
 
-- **[Map — Eval strategy for the ai-plugins marketplace](https://linear.app/taciogt/issue/HF-76/map-eval-strategy-for-the-ai-plugins-marketplace)**
-  in project [Skill Evals for ai-plugins](https://linear.app/taciogt/project/skill-evals-for-ai-plugins-eb0ecfa1d992)
-  — charted 2026-07-29.
+- **[Map — Eval strategy for the ai-plugins marketplace](https://github.com/taciogt/ai-plugins/issues/6)** — board: [Skill Evals for ai-plugins](https://github.com/users/taciogt/projects/6) — migrated from Linear (was HF-76) 2026-09-07.

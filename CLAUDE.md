@@ -20,9 +20,15 @@ plugins/
 
 When installed, skills land in `.claude/skills/` and agents in `.claude/agents/` inside the target project.
 
-## Issue Tracker
+## Agent skills
 
-Issues, PRDs, and wayfinder maps live in **Linear**, in the `Home Finances` team, via the `linear-server` MCP. See `docs/agents/issue-tracker.md` for the conventions — including the Linear-specific wayfinder operations and two footguns (`labels` replaces the whole set; there is no "open" state).
+### Issue tracker
+
+Issues, specs, and wayfinder maps live as **GitHub issues** in `taciogt/ai-plugins`, via the `gh` CLI. See `docs/agents/issue-tracker.md` for the conventions, including the wayfinder operations (native sub-issues + issue dependencies) and the verified frontier-query recipe.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
 ## Adding a New Plugin
 
