@@ -39,6 +39,12 @@ Skills have three invocation modes controlled by frontmatter:
 - **Guarded Skill** *(`disable-model-invocation: true`)* — user-triggered only. Used for Skills with side effects (push, deploy, create PR) where Claude must not fire them autonomously.
 - **Internal Skill** *(`user-invocable: false`)* — Claude-only reference material. Hidden from the slash command menu; Claude loads it automatically when relevant.
 
+### Initial Context
+Everything already loaded into a session's window before the user's first prompt: the system prompt, instruction files, skill and subagent descriptions, MCP tool names and instructions, and output injected by hooks. Its size decides how much of the window remains free for the session's actual work.
+
+### Context Audit
+A read-only review of a session's Initial Context against past usage, producing ranked proposals to shrink it. An audit proposes edits; it never applies them.
+
 ### Installation
 The act of registering a Plugin from a Marketplace into a target environment. Installation follows a subscription model — the Plugin is registered as a dependency, and the installed version updates when the user explicitly runs a Marketplace update command. Not a one-time copy. Installation scope determines where the Plugin lands (see *Installation Scope*).
 

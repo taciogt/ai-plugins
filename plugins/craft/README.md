@@ -24,3 +24,9 @@ Fetches current documentation for any library, framework, SDK, or CLI tool via t
 ### `/review-session`
 
 Analyses the current session and produces a severity-rated report across 7 dimensions. Invoke after any non-trivial session to identify what to do better next time.
+
+### `/context-audit [--days N] [--refresh] [--context <pasted /context output>]`
+
+Audits what loads into every session (plugins, skills, MCP servers, CLAUDE.md, memory, subagent descriptions) against real usage in past transcripts across all projects, and proposes cuts ranked by tokens saved. Report-only: each finding carries the exact edit, nothing is changed. User-invoked only, so its own description costs nothing per session. Paste `/context all` output to get measured instead of estimated token figures; `--refresh` re-researches the best-practices reference (dated, cited) before auditing.
+
+Dispatches four parallel agents (`context-usage-miner`, `context-mcp-analyst` on Haiku; `context-skills-analyst`, `context-docs-analyst` on Sonnet) and synthesizes in the main session. `context-research` runs only on `--refresh`.
