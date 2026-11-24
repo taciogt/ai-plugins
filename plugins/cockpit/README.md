@@ -6,11 +6,7 @@ A Claude Code **mod** (a hooks module, not skills or agents) that draws a compac
 Opus 5.5·high │ ctx ██▓▓▒░░░░░░░▒▒ 38% 76k │ 5h ▰▰▰┃▱▱ 60% ⚠1h20 ↻3h00 · 7d ▰┃▱▱▱▱ 20% │ main ±3 ↑1  #42 ✗CI 💬3 │ ⚙2 │ ~$0.42 │ last 4m12 · 7 tools ⋯ ×
 ```
 
-While a turn runs, the band steps aside so it does not merge with the Spinner, and a short summary rides on the Spinner line instead:
-
-```
-✻ Sauteing… (12s · 300 tokens) │ ctx 38% · 5h 60%⚠ · ⚙2 · ✗CI
-```
+The band stays above the prompt while a turn runs, so it never flickers in and out.
 
 ## What it shows
 
@@ -56,7 +52,7 @@ A toast fires once when context reaches 85% and once when the 5h limit reaches 8
   - **Rate limits.** Each window with its pace cursor, how much of the window has elapsed, and whether the quota runs out before the reset.
   - **Git & PR.** Branch and worktree; the PR title, state, review decision and mergeability; failing and running checks; and the latest comments. Buttons: **Open PR**, **Fix CI** (fills the prompt with `/fix-ci <n>`), **Address comments** (fills the prompt with a request to address them) and **↻ refresh**.
   - **Agents.** Each subagent's status, model·effort, a context bar, tokens, elapsed time, cost and a sparkline of its token use.
-- `/cockpit hide` and `/cockpit show` toggle the band and the Spinner summary.
+- `/cockpit hide` and `/cockpit show` toggle the band.
 
 The prompt-filling buttons only put text in the prompt, so you can edit it before sending.
 

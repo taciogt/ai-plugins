@@ -230,28 +230,14 @@ test('hotkey hints show only once the band holds the focus', async ($, on) => {
   await band.unmount()
 })
 
-const SPINNER = {
-  plugin: 'cockpit',
-  component: 'Spinner',
-  requestId: 'main',
-  props: { word: 'Sauteing', message: null, suffix: '…', mode: 'thinking' },
-} as const
-
-test('while a turn runs the band steps aside and the Spinner carries the summary', async ($, on) => {
+test('the band stays above the prompt while a turn runs', async ($, on) => {
   seed(on)
   await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
-  await $.command.run({ command: 'cockpit', args: '' } as Parameters<typeof $.command.run>[0])
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const band = await $.ui.mount({ ...BAND, surface, props: { ...BAND.props, isWorking: true } })
-    expect(await band.find({ type: 'Text', text: /Opus 5\.5/ })).toBeFalsy()
+    expect((await band.find({ type: 'Text', text: /Opus 5\.5/ }))?.text).toBe('Opus 5.5')
+    expect(await band.find({ type: 'Button', key: 'band-ctx' })).toBeTruthy()
     await band.unmount()
-
-    const spinner = await $.ui.mount({ ...SPINNER, surface })
-    expect((await spinner.find({ type: 'Text', text: /^38%$/ }))?.text).toBe('38%')
-    expect(await spinner.find({ type: 'Text', text: /⚠/ })).toBeTruthy()
-    expect((await spinner.find({ type: 'Text', text: /⚙1/ }))?.text).toContain('⚙1')
-    expect((await spinner.find({ type: 'Text', text: /✗CI/ }))?.text).toContain('✗CI')
-    await spinner.unmount()
   }
 })

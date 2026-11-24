@@ -670,11 +670,9 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const s = await read($, snap)
-    // While a turn runs the Spinner sits right above this row; the summary
-    // moves into the Spinner (below) so the two never read as one block.
+    // The band stays put while a turn runs, so it doesn't flicker in and out.
     if (
       e.props.hasSurvey ||
-      e.props.isWorking ||
       s === null ||
       s.model === '' ||
       (await read($, isHidden))
@@ -877,50 +875,6 @@ export const register: Register = on => {
       </Box>
     )
   })
-
-  // ---------- summary beside the Spinner while a turn runs ----------
-
-  on('ui.render', { component: 'Spinner' }, async ($, e, next) => {
-    const engine = await next(e)
-    const s = await read($, snap)
-    // A subagent's spinner carries its agent id: leave those as they are.
-    if (
-      s === null ||
-      s.model === '' ||
-      (await read($, isHidden)) ||
-      s.agents.some(a => a.id === e.requestId)
-    ) {
-      return engine
-    }
-
-    const { Box, Text } = $.ui.resolve(e)
-    const now = await $.clock.now()
-    const fiveHour = s.limits.find(l => l.kind === 'five_hour')
-    const fivePace = fiveHour ? pace(fiveHour, now) : undefined
-    const activeAgents = s.agents.filter(a => ACTIVE_AGENT.has(a.status)).length
-
-    return (
-      <Box flexDirection="row" flexWrap="wrap">
-        {engine}
-        <Text dimColor> │ </Text>
-        {s.ctxPercent !== undefined && (
-          <Text>
-            <Text dimColor>ctx </Text>
-            <Text color={ctxColor(s.ctxPercent)}>{s.ctxPercent}%</Text>
-          </Text>
-        )}
-        {fiveHour && (
-          <Text>
-            <Text dimColor> · 5h </Text>
-            <Text color={paceColor(fiveHour, fivePace)}>{Math.round(fiveHour.percent)}%</Text>
-            {fivePace?.runsOutInMs !== undefined && <Text color="error">⚠</Text>}
-          </Text>
-        )}
-        {activeAgents > 0 && <Text color="claude"> · ⚙{activeAgents}</Text>}
-        {s.pr?.ci === 'fail' && <Text color="error"> · ✗CI</Text>}
-      </Box>
-    )
-  }).catch(($, e, next) => next(e))
 
   // ---------- details pane ----------
 
