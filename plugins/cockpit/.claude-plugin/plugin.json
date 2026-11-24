@@ -1,6 +1,6 @@
 {
   "name": "cockpit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Compact, readable session status above the prompt: model, context, rate limits, git and last turn, with alerts and a details pane.",
   "author": {
     "name": "Tacio Tavares",
