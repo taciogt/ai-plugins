@@ -37,6 +37,7 @@ A **mod** (hooks module) that draws a compact session status above the prompt: m
 | Feature | Invocation | What it does |
 |-------|-----------|-------------|
 | [Status band](./plugins/cockpit/README.md#what-it-shows) | always on | One row above the prompt: model·effort, context bar, 5h/7d limits with pace, git, cost estimate, last turn |
+| [Band buttons](./plugins/cockpit/README.md#band-buttons) | click a segment, or ctrl+x tab then its hotkey | Opens the pane on a section, toggles limit/git detail rows, fills `/fix-ci` or an address-comments prompt, hides the band |
 | [Details pane](./plugins/cockpit/README.md#command) | `/cockpit` · `/cockpit hide\|show` | Side pane with the context breakdown, limit pace and reset times, git; hides or shows the band |
 
 ## Installation
