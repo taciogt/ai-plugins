@@ -20,6 +20,13 @@
       "category": "development",
       "source": "./plugins/craft",
       "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/craft"
+    },
+    {
+      "name": "cockpit",
+      "description": "Mod that draws a compact, readable session status above the prompt (model, context, rate limits with pace, git, last turn), with threshold alerts and a /cockpit details pane.",
+      "category": "productivity",
+      "source": "./plugins/cockpit",
+      "homepage": "https://github.com/taciogt/ai-plugins/tree/main/plugins/cockpit"
     }
   ]
 }

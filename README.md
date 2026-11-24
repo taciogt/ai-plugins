@@ -30,6 +30,15 @@ Tools for working with Claude itself.
 | [`find-docs`](./plugins/craft/README.md#find-docs-library-or-question) | `/find-docs` | Fetches current library/framework docs via Context7 CLI |
 | [`review-session`](./plugins/craft/README.md#review-session) | `/review-session` | Analyses the current session for improvement opportunities across 7 dimensions — missed skills, delegation decisions, rework, planning gaps, context bloat, parallelisation, and other observations |
 
+### `cockpit`
+
+A **mod** (hooks module) that draws a compact session status above the prompt: model, context, rate limits with a pace cursor, git and last turn. It also raises threshold alerts and has a details pane.
+
+| Feature | Invocation | What it does |
+|-------|-----------|-------------|
+| [Status band](./plugins/cockpit/README.md#what-it-shows) | always on | One row above the prompt: model·effort, context bar, 5h/7d limits with pace, git, cost estimate, last turn |
+| [Details pane](./plugins/cockpit/README.md#command) | `/cockpit` · `/cockpit hide\|show` | Side pane with the context breakdown, limit pace and reset times, git; hides or shows the band |
+
 ## Installation
 
 ### From GitHub
