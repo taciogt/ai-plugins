@@ -16,3 +16,6 @@
 # Claude specific (as seen in CLAUDE.md)
 .claude/settings.local.json
 .claude/worktrees
+
+# Node
+node_modules/

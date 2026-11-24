@@ -1,6 +1,8 @@
 # CLAUDE.md
 
-Personal Claude Code plugin marketplace of skills and agents. Markdown and JSON only, no build or tests.
+Personal Claude Code plugin marketplace of skills, agents and mods. `npm run check` typechecks and tests the plugins that carry code; the pre-push hook (`git config core.hooksPath .githooks`) runs it plus the version-bump check.
+
+`plugins/cockpit` is a **mod** (hooks module): load `/plugin-authoring` before editing `hooks/register.tsx`.
 
 ## Agent skills
 

@@ -1,0 +1,28 @@
+# Pinned plugins must bump their version: docs/adr/0002-per-plugin-versioning.md
+# Typecheck and tests run in the pre-push hook only: they need the engine
+# types, which are gitignored.
+name: plugin versions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Pinned plugins bump their version
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          base=$([ "$EVENT" = pull_request ] && echo "$PR_BASE" || echo "$BEFORE")
+          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ]; then
+            base=$(git rev-parse HEAD~1)
+          fi
+          scripts/check-plugin-versions.sh "$base" HEAD

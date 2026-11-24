@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "check": "scripts/check-plugins.sh",
+    "check:versions": "scripts/check-plugin-versions.sh origin/main HEAD"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

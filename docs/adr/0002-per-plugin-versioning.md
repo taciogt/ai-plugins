@@ -6,4 +6,19 @@ The Marketplace is a container for distribution, not a product with a release cy
 
 ## Consequences
 
-The `plugin.json` manifest must include a `version` field. As of this writing it does not — that is a gap to close before versioning is formally enforced.
+Claude Code detects an update by comparing a Plugin's computed version with the installed one. Each Plugin takes one of two modes, set by whether its `plugin.json` has a `version` field:
+
+- **Pinned** (`version` set, e.g. `cockpit`): installed users stay on their cached copy until the string changes. Every change to a shipped file must bump `version` in the same push, or it never reaches them.
+- **Tracking** (no `version`, e.g. `craft`, `deliver`): the version is the commit SHA, so every pushed commit is an update and no bump is needed.
+
+Never set `version` in the Marketplace entry as well: `plugin.json` wins silently.
+
+### Bump rule (pinned Plugins)
+
+Semver, decided by what an installed user notices:
+
+- **patch**: a fix or wording change with no new behaviour.
+- **minor**: new or changed behaviour (a new skill, command, segment, option). Below 1.0, a breaking change is also minor.
+- **major** (from 1.0): a removed or renamed skill, command, agent or setting.
+
+Shipped files are everything under `plugins/<name>/` except `tests/`, `tsconfig.json` and `.gitignore`. `scripts/check-plugin-versions.sh` enforces the bump, run by the pre-push hook and CI.
