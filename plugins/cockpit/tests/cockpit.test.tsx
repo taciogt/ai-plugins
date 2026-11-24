@@ -21,7 +21,7 @@ const BAND = {
 // 5h window: 2h gone (40%), 60% used -> on pace for 150%: runs out early.
 // 7d window: 3.5d gone (50%), 20% used -> on pace for ~40%.
 // Returns what the band's buttons asked of the engine.
-const seed = (on: any) => {
+const seed = (on: any, { isRepo = true } = {}) => {
   const fills: string[] = []
   const opens: string[] = []
   on('clock.now', () => ({ value: NOW }))
@@ -39,7 +39,7 @@ const seed = (on: any) => {
   }))
   on('process.run', (_: any, e: any) => ({
     value: {
-      exitCode: 0,
+      exitCode: isRepo || e.argv[0] === 'gh' ? 0 : 128,
       stdout:
         e.argv[0] === 'gh'
           ? JSON.stringify(PR)
@@ -240,4 +240,98 @@ test('the band stays above the prompt while a turn runs', async ($, on) => {
     expect(await band.find({ type: 'Button', key: 'band-ctx' })).toBeTruthy()
     await band.unmount()
   }
+})
+
+const mountAt = ($: any, bodyColumns: number) =>
+  $.ui.mount({ ...BAND, surface: 'terminal', props: { ...BAND.props, bodyColumns } })
+
+const buttonKeys = async (band: any) =>
+  (await band.findAll({ type: 'Button' })).map((b: any) => b.key as string)
+
+test('cost and last turn live in the pane, not the band', async ($, on) => {
+  seed(on)
+  await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
+
+  const band = await mountAt($, 140)
+  expect(await band.find({ type: 'Text', text: /\$0\.42/ })).toBeFalsy()
+  expect(await band.find({ type: 'Text', text: /│/ })).toBeFalsy()
+  await band.unmount()
+
+  const pane = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await pane.find({ type: 'Text', text: /\$0\.42/ })).toBeTruthy()
+  await pane.unmount()
+})
+
+test('the 7d limit is a coloured figure without a bar', async ($, on) => {
+  seed(on)
+  await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
+
+  const band = await mountAt($, 140)
+  const sevenDay = await band.find({ type: 'Text', text: /^20%$/ })
+  expect(sevenDay?.props.color).toBe('success')
+  expect((await band.find({ type: 'Text', text: /60%/ }))?.text).toContain('▰')
+  await band.unmount()
+})
+
+test('line 1 narrows in steps and keeps the context figure', async ($, on) => {
+  seed(on)
+  await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
+
+  const at = async (cols: number) => {
+    const band = await mountAt($, cols)
+    const ctx = (await band.find({ type: 'Button', key: 'band-ctx' }))?.text ?? ''
+    const limits = (await band.find({ type: 'Button', key: 'band-limits' }))?.text ?? ''
+    const keys = await buttonKeys(band)
+    await band.unmount()
+    return { ctx, limits, keys }
+  }
+
+  const full = await at(140)
+  expect(full.limits).toContain('▰')
+  // Limits sit on line 1, before the git segment of line 2.
+  expect(full.keys.indexOf('band-limits')).toBeLessThan(full.keys.indexOf('band-git'))
+
+  const noBar = await at(66)
+  expect(noBar.limits).not.toContain('▰')
+  expect(noBar.ctx).toMatch(/[▰▱]{14}/)
+
+  const shortBar = await at(60)
+  expect(shortBar.ctx).toMatch(/ [▰▱]{8} /)
+
+  const moved = await at(50)
+  expect(moved.keys.indexOf('band-limits')).toBeGreaterThan(moved.keys.indexOf('band-git'))
+
+  for (const step of [full, noBar, shortBar, moved]) {
+    expect(step.ctx).toContain('38%')
+    expect(step.ctx).toContain('76k')
+  }
+})
+
+test('hotkey hints count toward the width', async ($, on) => {
+  seed(on)
+  await $.session.start({ cwd: '/repo', surface: 'terminal', isInteractive: true })
+
+  const band = await mountAt($, 74)
+  expect((await band.find({ type: 'Button', key: 'band-limits' }))?.text).toContain('▰')
+  await $.ui.focus({
+    component: 'AbovePrompt',
+    requestId: 'above-prompt',
+    plugin: 'cockpit',
+    element: 'band-ctx',
+    origin: { kind: 'plugin', name: 'cockpit' },
+  } as Parameters<typeof $.ui.focus>[0])
+  expect((await band.find({ type: 'Button', key: 'band-limits' }))?.text).not.toContain('▰')
+  await band.unmount()
+})
+
+test('outside a git repository line 2 still holds the menu', async ($, on) => {
+  seed(on, { isRepo: false })
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+
+  const band = await mountAt($, 140)
+  const keys = await buttonKeys(band)
+  expect(keys).not.toContain('band-git')
+  expect(keys).toContain('cockpit-open')
+  expect(keys).toContain('band-hide')
+  await band.unmount()
 })

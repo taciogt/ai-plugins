@@ -54,4 +54,23 @@ The target environment where an installed Plugin's Skills and Sub-agents become 
 - **project** — shared with all collaborators on a repository (committed to `.claude/settings.json`)
 - **local** — available in the current project for the current user only (gitignored)
 
+---
+
+## Cockpit
+
+### Band
+The strip directly above the prompt input, shared by every plugin that draws there. Cockpit's contribution to it is one of possibly several plugins' rows; within this project "the band" usually means Cockpit's part of it.
+
+### Line
+One visual line of Cockpit's part of the Band. Each Line groups one domain of information, so a given piece of information is always found on the same Line. Not to be confused with a plugin's *row* of the Band, which is all of that plugin's Lines together.
+
+### Side
+The left or right half of a Line. Each Side holds Segments that belong together, so the eye can find a group by position rather than by scanning the whole Line.
+
+### Segment
+One item of information on a Line (the context gauge, a rate limit, the branch, the pull request). A Segment may act when pressed, such as opening the Pane on its section.
+
+### Pane
+The side panel opened from the Band, holding the full detail behind each Segment. Information that is useful but not needed at a glance lives only in the Pane.
+
 *Terms are added here as they are resolved during domain modelling sessions.*

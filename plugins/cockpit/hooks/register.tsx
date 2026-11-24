@@ -94,6 +94,33 @@ const oneLine = (text: string, max: number) => {
   return flat.length > max ? `${flat.slice(0, max - 1)}…` : flat
 }
 
+// ---------- band layout ----------
+
+// One styled run of a band segment: what it draws and how wide it is come
+// from the same parts, so the layout's width estimate can't drift.
+type Part = { text: string; color?: string; dim?: boolean; bold?: boolean }
+
+// Terminal cells a string takes: emoji (💬) are two, the rest one.
+const cells = (text: string) =>
+  [...text].reduce((n, ch) => n + ((ch.codePointAt(0) ?? 0) >= 0x1f000 ? 2 : 1), 0)
+
+const partsWidth = (parts: Part[]) => parts.reduce((n, p) => n + cells(p.text), 0)
+
+// Each block's anchor has its own hue. Green, yellow and red stay reserved
+// for state (context fill, pace, CI, dirty tree), so they are never an anchor.
+const ANCHOR = {
+  model: 'claude',
+  ctx: 'planMode',
+  limits: 'ide',
+  git: 'permission',
+  pr: 'merged',
+  agents: 'claude',
+} as const
+
+const SEG_GAP = 2 // cells between segments on one side of a line
+const SIDE_GAP = 2 // least cells between a line's left and right sides
+const HINT = 3 // a focused band draws `k: ` before each hotkeyed Button
+
 // ---------- context visuals ----------
 
 type Run = { text: string; color?: string; dim: boolean }
@@ -682,13 +709,12 @@ export const register: Register = on => {
 
     const { Box, Button, Link, Text } = $.ui.resolve(e)
     const now = await $.clock.now()
-    const isNarrow = e.props.bodyColumns < 100
     const open = await read($, details)
     // A plain Button draws `c: label` whenever it has a hotkey, so the hint
     // is the hotkey itself: given only while the band holds the focus.
     const isFocused = await read($, bandFocus)
     const hk = (key: string) => (isFocused ? { hotkey: key } : {})
-    const sep = <Text dimColor> │ </Text>
+    const hint = isFocused ? HINT : 0
 
     const ctx = s.ctxPercent
     const limits = s.limits.filter(l => LIMIT_LABEL[l.kind])
@@ -696,117 +722,199 @@ export const register: Register = on => {
     const pr = s.pr
     const activeAgents = s.agents.filter(a => ACTIVE_AGENT.has(a.status)).length
 
-    const row = (
-      <Box flexDirection="row" flexWrap="wrap">
-        <Text color="claude" bold>{shortModel(s.model)}</Text>
-        {s.effort && <Text dimColor>·{s.effort}</Text>}
-        {s.style && s.style !== 'default' && <Text dimColor>·{s.style}</Text>}
+    // A segment's drawing and the cells it takes, its hotkey hints included.
+    type Seg = { w: number; el: RenderChildren }
+    const draw = (parts: Part[]) =>
+      parts.map(p => (
+        <Text color={p.color} dimColor={p.dim} bold={p.bold}>
+          {p.text}
+        </Text>
+      ))
+    const present = (segs: (Seg | undefined)[]) => segs.filter((sg): sg is Seg => sg !== undefined)
+    // One side of a line: its segments apart by SEG_GAP, no separator glyphs.
+    const side = (segs: (Seg | undefined)[]): Seg => {
+      const shown = present(segs)
+      return {
+        w: shown.reduce((n, sg) => n + sg.w, 0) + SEG_GAP * Math.max(0, shown.length - 1),
+        el: shown.map((sg, i) => (i === 0 ? sg.el : [<Text>{' '.repeat(SEG_GAP)}</Text>, sg.el])),
+      }
+    }
 
-        {sep}
-        <Button key="band-ctx" plain autoFocus {...hk('c')} onPress={() => openPaneOn($, 'context')}>
-          <Text dimColor>ctx </Text>
-          {!isNarrow && s.categories.length > 0 ? (
-            <Text>
-              {stackedRuns(s.categories, 14).map(run => (
-                <Text color={run.color} dimColor={run.dim}>{run.text}</Text>
-              ))}{' '}
-            </Text>
-          ) : (
-            !isNarrow && ctx !== undefined && <Text color={ctxColor(ctx)}>{bar(ctx, 8)} </Text>
-          )}
-          {ctx === undefined ? <Text dimColor>—</Text> : <Text color={ctxColor(ctx)}>{ctx}%</Text>}
-          {!isNarrow && s.ctxTokens !== undefined && <Text dimColor> {kTokens(s.ctxTokens)}</Text>}
-          {s.compactions > 0 && <Text color="warning"> ⟳{s.compactions}</Text>}
-        </Button>
+    const modelParts: Part[] = [
+      { text: shortModel(s.model), color: ANCHOR.model, bold: true },
+      ...(s.effort ? [{ text: `·${s.effort}`, dim: true }] : []),
+      ...(s.style && s.style !== 'default' ? [{ text: `·${s.style}`, dim: true }] : []),
+    ]
+    const model: Seg = { w: partsWidth(modelParts), el: draw(modelParts) }
 
-        {limits.length > 0 && sep}
-        {limits.length > 0 && (
+    const ctxSeg = (barCells: number): Seg => {
+      const gauge: Part[] =
+        s.categories.length > 0
+          ? [...stackedRuns(s.categories, barCells), { text: ' ' }]
+          : ctx !== undefined
+            ? [{ text: `${bar(ctx, barCells)} `, color: ctxColor(ctx) }]
+            : []
+      const parts: Part[] = [
+        { text: 'ctx ', color: ANCHOR.ctx },
+        ...gauge,
+        ctx === undefined ? { text: '—', dim: true } : { text: `${ctx}%`, color: ctxColor(ctx) },
+        ...(s.ctxTokens !== undefined ? [{ text: ` ${kTokens(s.ctxTokens)}`, dim: true }] : []),
+        ...(s.compactions > 0 ? [{ text: ` ⟳${s.compactions}`, color: 'warning' }] : []),
+      ]
+      return {
+        w: partsWidth(parts) + hint,
+        el: (
+          <Button key="band-ctx" plain autoFocus {...hk('c')} onPress={() => openPaneOn($, 'context')}>
+            {draw(parts)}
+          </Button>
+        ),
+      }
+    }
+
+    // Only the 5h window draws its pace bar; the others are a figure coloured
+    // by the same pace. `⚠` comes with red alone: the quota runs out first.
+    const limitsSeg = (fiveHourBar: boolean): Seg | undefined => {
+      if (limits.length === 0) return undefined
+      const parts = limits.flatMap((l, i): Part[] => {
+        const p = pace(l, now)
+        const isAtRisk = p?.runsOutInMs !== undefined
+        const reset = l.percent >= 50 || isAtRisk ? untilReset(l, now) : undefined
+        const gauge =
+          fiveHourBar && l.kind === 'five_hour' ? `${paceBar(l.percent, p?.elapsed, 6)} ` : ''
+        return [
+          ...(i > 0 ? [{ text: ' '.repeat(SEG_GAP) }] : []),
+          { text: `${LIMIT_LABEL[l.kind]} `, color: ANCHOR.limits },
+          { text: `${gauge}${Math.round(l.percent)}%`, color: paceColor(l, p) },
+          ...(isAtRisk ? [{ text: ` ⚠${duration(p?.runsOutInMs ?? 0)}`, color: 'error' }] : []),
+          ...(reset ? [{ text: ` ↻${reset}`, dim: true }] : []),
+        ]
+      })
+      return {
+        w: partsWidth(parts) + hint,
+        el: (
           <Button key="band-limits" plain {...hk('l')} onPress={() => toggleDetail($, 'limits')}>
-            {limits.map((l, i) => {
-              const p = pace(l, now)
-              const isAtRisk = p?.runsOutInMs !== undefined
-              const reset = l.percent >= 50 || isAtRisk ? untilReset(l, now) : undefined
-              return (
-                <Text>
-                  {i > 0 && <Text dimColor> · </Text>}
-                  <Text dimColor>{LIMIT_LABEL[l.kind]} </Text>
-                  <Text color={paceColor(l, p)}>
-                    {isNarrow ? '' : `${paceBar(l.percent, p?.elapsed, 6)} `}
-                    {Math.round(l.percent)}%
-                  </Text>
-                  {isAtRisk && <Text color="error"> ⚠{duration(p?.runsOutInMs ?? 0)}</Text>}
-                  {reset && <Text dimColor> ↻{reset}</Text>}
-                </Text>
-              )
-            })}
+            {draw(parts)}
           </Button>
-        )}
+        ),
+      }
+    }
 
-        {git && sep}
-        {git && (
+    const gitSeg = ((): Seg | undefined => {
+      if (!git) return undefined
+      const parts: Part[] = [
+        { text: git.branch, color: ANCHOR.git },
+        ...(git.worktree ? [{ text: ` ⑂${git.worktree}`, dim: true }] : []),
+        git.changes > 0
+          ? { text: ` ±${git.changes}`, color: 'warning' }
+          : { text: ' ✓', color: 'success' },
+        ...(git.ahead > 0 ? [{ text: ` ↑${git.ahead}`, dim: true }] : []),
+        ...(git.behind > 0 ? [{ text: ` ↓${git.behind}`, color: 'warning' }] : []),
+      ]
+      return {
+        w: partsWidth(parts) + hint,
+        el: (
           <Button key="band-git" plain {...hk('g')} onPress={() => toggleDetail($, 'git')}>
-            <Text color="permission">{git.branch}</Text>
-            {git.worktree && <Text dimColor> ⑂{git.worktree}</Text>}
-            {git.changes > 0 ? (
-              <Text color="warning"> ±{git.changes}</Text>
-            ) : (
-              <Text color="success"> ✓</Text>
-            )}
-            {git.ahead > 0 && <Text dimColor> ↑{git.ahead}</Text>}
-            {git.behind > 0 && <Text color="warning"> ↓{git.behind}</Text>}
+            {draw(parts)}
           </Button>
-        )}
+        ),
+      }
+    })()
 
-        {pr && <Text dimColor>  </Text>}
-        {/* A Link takes no hotkey and no plugin call opens a URL: `#42` is a click. */}
-        {pr &&
-          (pr.url ? (
-            <Link href={pr.url}>
-              <Text dimColor={pr.isDraft}>#{pr.number}</Text>
-            </Link>
-          ) : (
-            <Text dimColor={pr.isDraft}>#{pr.number}</Text>
-          ))}
-        {pr?.ci === 'fail' && (
-          <Button key="band-fix-ci" plain {...hk('f')} onPress={() => fixCi($, pr.number)}>
-            <Text color={CI_GLYPH.fail.color}> {CI_GLYPH.fail.glyph}CI</Text>
-          </Button>
-        )}
-        {pr && pr.ci !== 'none' && pr.ci !== 'fail' && (
-          <Text color={CI_GLYPH[pr.ci].color}> {CI_GLYPH[pr.ci].glyph}CI</Text>
-        )}
-        {pr && pr.commentCount > 0 && (
-          <Button key="band-comments" plain {...hk('r')} onPress={() => addressComments($, pr.number)}>
-            <Text dimColor> 💬{pr.commentCount}</Text>
-          </Button>
-        )}
-        {pr?.reviewDecision === 'APPROVED' && <Text color="success"> ✔</Text>}
-        {pr?.reviewDecision === 'CHANGES_REQUESTED' && <Text color="error"> ✗rev</Text>}
-        {pr?.mergeable === 'CONFLICTING' && <Text color="error"> ⚠conflict</Text>}
+    // Shown only while the branch has a PR.
+    const prSeg = ((): Seg | undefined => {
+      if (!pr) return undefined
+      const num: Part[] = [
+        { text: `#${pr.number}`, color: pr.isDraft ? undefined : ANCHOR.pr, dim: pr.isDraft },
+      ]
+      const ciFail: Part[] =
+        pr.ci === 'fail' ? [{ text: ` ${CI_GLYPH.fail.glyph}CI`, color: CI_GLYPH.fail.color }] : []
+      const ciOther: Part[] =
+        pr.ci !== 'none' && pr.ci !== 'fail'
+          ? [{ text: ` ${CI_GLYPH[pr.ci].glyph}CI`, color: CI_GLYPH[pr.ci].color }]
+          : []
+      const comments: Part[] =
+        pr.commentCount > 0 ? [{ text: ` 💬${pr.commentCount}`, dim: true }] : []
+      const status: Part[] = [
+        ...(pr.reviewDecision === 'APPROVED' ? [{ text: ' ✔', color: 'success' }] : []),
+        ...(pr.reviewDecision === 'CHANGES_REQUESTED' ? [{ text: ' ✗rev', color: 'error' }] : []),
+        ...(pr.mergeable === 'CONFLICTING' ? [{ text: ' ⚠conflict', color: 'error' }] : []),
+      ]
+      return {
+        w:
+          partsWidth([...num, ...ciFail, ...ciOther, ...comments, ...status]) +
+          (ciFail.length > 0 ? hint : 0) +
+          (comments.length > 0 ? hint : 0),
+        el: [
+          // A Link takes no hotkey and no plugin call opens a URL: `#42` is a click.
+          pr.url ? <Link href={pr.url}>{draw(num)}</Link> : draw(num),
+          ciFail.length > 0 && (
+            <Button key="band-fix-ci" plain {...hk('f')} onPress={() => fixCi($, pr.number)}>
+              {draw(ciFail)}
+            </Button>
+          ),
+          draw(ciOther),
+          comments.length > 0 && (
+            <Button key="band-comments" plain {...hk('r')} onPress={() => addressComments($, pr.number)}>
+              {draw(comments)}
+            </Button>
+          ),
+          draw(status),
+        ],
+      }
+    })()
 
-        {activeAgents > 0 && sep}
-        {activeAgents > 0 && (
-          <Button key="band-agents" plain {...hk('a')} onPress={() => openPaneOn($, 'agents')}>
-            <Text color="claude">⚙{activeAgents}</Text>
-          </Button>
-        )}
+    const agentsSeg: Seg | undefined =
+      activeAgents > 0
+        ? {
+            w: cells(`⚙${activeAgents}`) + hint,
+            el: (
+              <Button key="band-agents" plain {...hk('a')} onPress={() => openPaneOn($, 'agents')}>
+                <Text color={ANCHOR.agents}>⚙{activeAgents}</Text>
+              </Button>
+            ),
+          }
+        : undefined
 
-        {s.costUsd !== undefined && s.costUsd > 0 && !isNarrow && sep}
-        {s.costUsd !== undefined && s.costUsd > 0 && !isNarrow && (
-          <Text dimColor>~{usd(s.costUsd)}</Text>
-        )}
+    const menu: Seg = {
+      w: 3 + 2 * hint,
+      el: [
+        <Button key="cockpit-open" plain dimColor {...hk('o')} label="⋯" onPress={() => openPane($)} />,
+        <Text> </Text>,
+        <Button key="band-hide" plain dimColor {...hk('x')} label="×" onPress={() => hideBand($)} />,
+      ],
+    }
 
-        {s.lastTurn && !isNarrow && sep}
-        {s.lastTurn && !isNarrow && (
-          <Text dimColor>
-            last {seconds(s.lastTurn.seconds)} · {s.lastTurn.tools} tools
-          </Text>
-        )}
+    // Line 1 (session) narrows in steps until it fits, never wrapping:
+    // the 5h bar goes, then the context bar shrinks, then the limits move to
+    // line 2. The context figure and tokens always stay.
+    const cols = e.props.bodyColumns
+    const fits = (left: Seg, right: Seg) => left.w + SIDE_GAP + right.w <= cols
+    const steps = [
+      { fiveHourBar: true, ctxCells: 14 },
+      { fiveHourBar: false, ctxCells: 14 },
+      { fiveHourBar: false, ctxCells: 8 },
+    ].map(st => ({
+      left: side([model, ctxSeg(st.ctxCells)]),
+      right: side([limitsSeg(st.fiveHourBar)]),
+    }))
+    const fitting = steps.find(st => fits(st.left, st.right))
+    const line1 = fitting ?? { left: side([model, ctxSeg(8)]), right: side([]) }
+    const line2 = {
+      left: side([gitSeg, prSeg]),
+      right: side([fitting ? undefined : limitsSeg(false), agentsSeg, menu]),
+    }
 
-        <Text> </Text>
-        <Button key="cockpit-open" plain dimColor {...hk('o')} label="⋯" onPress={() => openPane($)} />
-        <Text> </Text>
-        <Button key="band-hide" plain dimColor {...hk('x')} label="×" onPress={() => hideBand($)} />
+    // The right side never shrinks: past the last step, the left one is cut,
+    // held to one row of cells on the terminal (a desktop lays out its own).
+    const oneRow = e.surface === 'terminal' ? { height: 1 } : {}
+    const line = ({ left, right }: { left: Seg; right: Seg }) => (
+      <Box flexDirection="row" flexWrap="nowrap" justifyContent="space-between" width="100%">
+        <Box flexDirection="row" flexShrink={1} overflow="hidden" {...oneRow}>
+          {left.el}
+        </Box>
+        <Box flexDirection="row" flexShrink={0} marginLeft={SIDE_GAP}>
+          {right.el}
+        </Box>
       </Box>
     )
 
@@ -862,15 +970,14 @@ export const register: Register = on => {
           ]
         : []
 
-    // A full main row runs ~145 cells, ~170 with hotkey hints: below that it
-    // wraps to two lines (rarely three). Keep the detail rows that fit.
-    const mainRows = e.props.bodyColumns < 80 ? 3 : e.props.bodyColumns < 170 ? 2 : 1
-    const room = Math.max(0, e.props.maxRows - mainRows)
+    // The two lines never wrap. Keep the detail rows that fit under them.
+    const room = Math.max(0, e.props.maxRows - 2)
     const extra = [...limitLines, ...gitLines].slice(0, room)
 
     return (
       <Box flexDirection="column">
-        {row}
+        {line(line1)}
+        {line(line2)}
         {extra}
       </Box>
     )
